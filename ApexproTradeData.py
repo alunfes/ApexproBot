@@ -1,5 +1,5 @@
 import threading
-
+import pandas as pd
 
 class TradeData:
     def __init__(self, symbol) -> None:
@@ -9,6 +9,7 @@ class TradeData:
         self.prices = []
         self.sizes = []
         self.ts = []
+        self.flg_created_file = False
     
     def add(self, side, price, size, ts):
         self.sides.append(side)
@@ -16,13 +17,21 @@ class TradeData:
         self.sizes.append(size)
         self.ts.append(ts)
         if len(self.sides) > self.max_data_size:
-            l = int(self.max_data_size * 0.5)
-            self.sides[-l:]
-            self.prices[-l:]
-            self.sizes[-l:]
-            self.ts[-l:]
+            self.__write_data()
+            self.sides = []
+            self.prices = []
+            self.sizes = []
+            self.ts = []
             print(self.symbol, ': Removed data to decrease size.')
     
+    def __write_data(self):
+        df = pd.DataFrame({'ts':self.ts, 'side':self.sides, 'price':self.prices, 'size':self.sizes})
+        if self.flg_created_file:
+            df.to_csv('Data/trade/'+'apexpro_'+self.symbol+'_trade.csv', mode='a', header=False, index=False) 
+        else:
+            df.to_csv('Data/trade/'+'apexpro_'+self.symbol+'_trade.csv', index=False)
+            self.flg_created_file = True
+
 
 
 class ApexproTradeData:
